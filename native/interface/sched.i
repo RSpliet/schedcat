@@ -15,6 +15,7 @@
 #include "edf/gel_pl.h"
 #include "edf/qpa.h"
 #include "edf/la.h"
+#include "edf/george_np.h"
 
 #ifdef CONFIG_HAVE_LP
 #include "apa_feas.h"
@@ -50,6 +51,7 @@
 #include "edf/gel_pl.h"
 #include "edf/qpa.h"
 #include "edf/la.h"
+#include "edf/george_np.h"
 
 #ifdef CONFIG_HAVE_LP
 %ignore APAFeasibleSolution::set_fraction;

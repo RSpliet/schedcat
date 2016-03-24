@@ -50,7 +50,11 @@ def is_schedulable_py(no_cpus, tasks,
                       want_baruah=3000,
                       want_rta=True,
                       want_ffdbf=False,
-                      want_load=False):
+                      want_load=False,
+                      preemptive=True):
+    if preemptive == False:
+        # not implemented
+        return False
     if tasks.utilization() > no_cpus or \
         not forall(tasks)(lambda t: t.period >= t.cost):
         # trivially infeasible
@@ -93,15 +97,22 @@ if schedcat.sched.using_native:
                            want_baruah=True,
                            want_rta=True,
                            want_ffdbf=False,
-                           want_load=False):
+                           want_load=False,
+                           preemptive=True):
         if no_cpus == 1:
-            native_test = native.QPATest(no_cpus);
+            if preemptive == True:
+                native_test = native.QPATest(no_cpus);
+            else:
+                native_test = native.George_NPTest(no_cpus);
         else:
-            native_test = native.GlobalEDF(no_cpus, rta_min_step,
+            if preemptive == True:
+                native_test = native.GlobalEDF(no_cpus, rta_min_step,
                                            want_baruah != False,
                                            want_rta,
                                            want_ffdbf,
                                            want_load)
+            else:
+                return False;
         ts = schedcat.sched.get_native_taskset(tasks)
         return native_test.is_schedulable(ts)
 
