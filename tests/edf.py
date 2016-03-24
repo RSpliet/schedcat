@@ -204,6 +204,30 @@ class Test_QPA(unittest.TestCase):
             ])
         self.assertFalse(qpa.is_schedulable(sched.get_native_taskset(ts2)))
 
+class Test_George_NP(unittest.TestCase):
+
+    def setUp(self):
+        self.ts =  tasks.TaskSystem([
+            tasks.SporadicTask(1000, 5000),
+            tasks.SporadicTask(100,  1100),
+            ])
+
+    def test_george_np_schedulable(self):
+        george_np = edf.native.George_NPTest(1)
+        self.assertTrue(george_np.is_schedulable(sched.get_native_taskset(self.ts)))
+
+    def test_edf_schedulable(self):
+        self.assertTrue(edf.is_schedulable(1, self.ts))
+
+    def test_george_np_not_schedulable(self):
+        self.ts.append(tasks.SporadicTask(100, 1100))
+        george_np = edf.native.George_NPTest(1)
+        self.assertFalse(george_np.is_schedulable(sched.get_native_taskset(self.ts)))
+
+    def test_edf_not_schedulable(self):
+        self.ts.append(tasks.SporadicTask(100, 1100))
+        self.assertTrue(edf.is_schedulable(1, self.ts))
+
 class Test_gy_rta(unittest.TestCase):
     def setUp(self):
         self.ts1 = tasks.TaskSystem([tasks.SporadicTask(3,12), tasks.SporadicTask(2,4)])
