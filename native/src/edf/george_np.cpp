@@ -213,8 +213,10 @@ bool George_NPTest::is_schedulable(const TaskSet &ts, bool check_preconditions)
 
 		ts.bound_demand(mpz_class(*t), demand);
 
-		if (demand + max_C > *t)
+		if (demand + max_C > *t) {
+			//std::cout << *t << ": " << demand+max_C << std::endl;
 			return false;
+		}
 	}
 
 	return true;

@@ -21,6 +21,7 @@ class Task
     unsigned long prio_pt;
     unsigned long self_suspension;
     unsigned long tardiness_threshold;
+    unsigned long wc_blocking; /* lpQPA-LL */
 
   public:
 
@@ -31,16 +32,18 @@ class Task
         unsigned long deadline = 0,
         unsigned long prio_pt = 0,
         unsigned long susp = 0,
-        unsigned long max_tardiness = 0
+        unsigned long max_tardiness = 0,
+	unsigned long wc_blocking = 0
     );
     Task(unsigned long wcet = 0,
          unsigned long period = 0,
          unsigned long deadline = 0,
          unsigned long prio_pt = 0,
          unsigned long susp = 0,
-         unsigned long max_tardiness = 0)
+         unsigned long max_tardiness = 0,
+	 unsigned long wc_blocking = 0)
     {
-        init(wcet, period, deadline, prio_pt, susp, max_tardiness);
+        init(wcet, period, deadline, prio_pt, susp, max_tardiness, wc_blocking);
     }
 
     /* getter / setter */
@@ -53,6 +56,7 @@ class Task
     unsigned long get_prio_pt() const { return prio_pt; }
     unsigned long get_self_suspension() const { return self_suspension; };
     unsigned long get_tardiness_threshold() const { return tardiness_threshold; };
+    unsigned long get_wc_blocking() const { return wc_blocking; };
 
     void set_deadline(unsigned long dl) { deadline = dl; }
     void set_wcet(unsigned long e) { wcet = e; }
@@ -203,10 +207,11 @@ class TaskSet
 
     void add_task(unsigned long wcet, unsigned long period,
                   unsigned long deadline = 0, unsigned long prio_pt = 0,
-                  unsigned long suspension = 0, unsigned long tardiness_threshold = 0)
+                  unsigned long suspension = 0, unsigned long tardiness_threshold = 0,
+		  unsigned long wc_blocking = 0)
     {
         tasks.push_back(Task(wcet, period, deadline,
-            prio_pt, suspension, tardiness_threshold));
+            prio_pt, suspension, tardiness_threshold, wc_blocking));
     }
 
     unsigned int get_task_count() const { return tasks.size(); }

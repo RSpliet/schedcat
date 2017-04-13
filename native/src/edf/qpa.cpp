@@ -137,6 +137,65 @@ static integral_t get_largest_testpoint(const TaskSet &ts,
 	return point;
 }
 
+static bool blocking(const TaskSet &ts)
+{
+	for (unsigned int i = 0; i < ts.get_task_count(); i++) {
+		if (ts[i].get_wc_blocking() > 0)
+			return true;
+	}
+
+	return false;
+}
+
+static unsigned long max_blocking(const TaskSet &ts, integral_t interval)
+{
+	unsigned long max_blocking = 0ul;
+
+	for (unsigned int i = 0; i < ts.get_task_count(); i++) {
+		if (ts[i].get_period() <= interval)
+			continue;
+
+		max_blocking = std::max(max_blocking, ts[i].get_wc_blocking());
+	}
+
+	return max_blocking;
+}
+
+static unsigned long min_period(const TaskSet &ts)
+{
+	unsigned long min_period = ULONG_MAX;
+
+	for (unsigned int i = 0; i < ts.get_task_count(); i++)
+		min_period = std::min(min_period, ts[i].get_period());
+
+	return min_period;
+}
+
+static integral_t lpedf_max_interval(const TaskSet &ts)
+{
+	integral_t max_interval = 0;
+	integral_t interval;
+
+	for (unsigned int i = 0; i < ts.get_task_count(); i++) {
+		fractional_t u_sum = 0;
+		fractional_t u;
+		fractional_t interval_f;
+
+		for (unsigned int j = 0; j < ts.get_task_count(); j++) {
+			if (ts[j].get_period() > ts[i].get_period())
+				continue;
+
+			ts[j].get_utilization(u);
+			u_sum += u;
+		}
+
+		interval = mpz_class(ts[i].get_wc_blocking() / (1 - u_sum));
+		max_interval = std::max(max_interval, interval);
+	}
+
+	return max_interval;
+}
+
 bool QPATest::is_schedulable(const TaskSet &ts, bool check_preconditions)
 {
 	if (check_preconditions)
@@ -147,27 +206,46 @@ bool QPATest::is_schedulable(const TaskSet &ts, bool check_preconditions)
 	}
 
 	fractional_t util;
+	fractional_t fluidity_factor;
+	integral_t demand;
+	integral_t max_interval;
 	ts.get_utilization(util);
 
 	if (util > 1)
 		return false;
 
-	integral_t max_interval = edf_busy_interval(ts);
+	if (blocking(ts)) {
+		fluidity_factor = divide_with_ceil(demand,mpz_class(min_period(ts)));
+
+		if(fluidity_factor > 1)
+			return false;
+
+		/* This test does not apply for utilisation equal to 1,
+		 * hence unschedulable using lpQPA-LL test */
+		if (util == 1)
+			return false;
+
+		max_interval = lpedf_max_interval(ts);
+	} else {
+		max_interval = edf_busy_interval(ts);
+		if (util < 1)
+			max_interval = std::min(max_interval, zhang_burns_interval(ts));
+	}
+
 	unsigned long min_interval = min_relative_deadline(ts);
 
-	if (util < 1)
-		max_interval = std::min(max_interval, zhang_burns_interval(ts));
-
 	integral_t next = get_largest_testpoint(ts, max_interval);
-	integral_t demand;
 	integral_t interval;
 
 	do
 	{
 		interval = next;
 		ts.bound_demand(interval, demand);
+
+		demand += max_blocking(ts, interval);
+
 		if (demand < interval)
-			next = demand;
+			next = get_largest_testpoint(ts, demand);
 		else
 			next = get_largest_testpoint(ts, interval);
 

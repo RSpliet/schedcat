@@ -11,16 +11,16 @@ try:
         ts = TaskSet()
         if with_suspensions:
             for t in tasks:
-                if (hasattr(t, 'prio_pt')):
-                    ts.add_task(t.cost, t.period, t.deadline, t.prio_pt, t.suspended)
-                else:
-                    ts.add_task(t.cost, t.period, t.deadline, 0, t.suspended)
+                ts.add_task(t.cost, t.period, t.deadline,
+                            t.prio_pt if hasattr(t, 'prio_pt') else 0,
+                            t.suspended, 0,
+                            t.wc_blocking if hasattr(t, 'wc_blocking') else 0)
         else:
             for t in tasks:
-                if (hasattr(t, 'prio_pt')):
-                    ts.add_task(t.cost, t.period, t.deadline, t.prio_pt)
-                else:
-                    ts.add_task(t.cost, t.period, t.deadline)
+                ts.add_task(t.cost, t.period, t.deadline,
+                            t.prio_pt if hasattr(t, 'prio_pt') else 0,
+                            0, 0,
+                            t.wc_blocking if hasattr(t, 'wc_blocking') else 0)
         return ts
 
 except ImportError:

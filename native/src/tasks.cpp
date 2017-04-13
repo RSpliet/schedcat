@@ -13,7 +13,8 @@ void Task::init(unsigned long wcet,
                 unsigned long deadline,
                 unsigned long prio_pt,
    			    unsigned long susp,
-                unsigned long max_tardiness)
+                unsigned long max_tardiness,
+		unsigned long wc_blocking)
 {
     this->wcet     = wcet;
     this->period   = period;
@@ -28,6 +29,7 @@ void Task::init(unsigned long wcet,
 
     this->self_suspension = susp;
     this->tardiness_threshold = max_tardiness;
+    this->wc_blocking = wc_blocking;
 }
 
 void Task::get_utilization(fractional_t &util) const
